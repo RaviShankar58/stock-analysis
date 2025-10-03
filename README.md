@@ -82,7 +82,7 @@ VITE_API_URL=http://localhost:4000
 
 ```bash
 PORT=4000
-MONGO_URI=mongodb://127.0.0.1:27017/stockapp
+MONGO_URI=mongodb:<your MongoDB url>
 JWT_SECRET=Your secret key
 
 MARKETAUX_API_KEY=<paste your API here>
