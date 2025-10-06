@@ -36,7 +36,6 @@ export default function DashboardPage() {
     setLoadingPortfolio(true);
     try {
       const res = await API.get("/user/portfolio");
-
       const items = res?.data?.portfolio ?? res?.data ?? [];
       setPortfolio(items || []);
 
@@ -71,7 +70,6 @@ export default function DashboardPage() {
     // eslint-disable-next-line
   }, []);
 
-
   const handleLogout = async () => {
     if (!confirm("Logout?")) return;
 
@@ -82,7 +80,6 @@ export default function DashboardPage() {
       showSuccess("Logged out — redirecting to login");
     } catch (err) {
       dismissToast(loadingId);
-      console.warn("logout request failed", err);
       const msg = err?.response?.data?.message || err?.message || "Logout failed";
       showError(msg);
     } finally {
@@ -91,7 +88,6 @@ export default function DashboardPage() {
       }, 600);
     }
   };
-
 
   const newsListRef = useRef(null);
   const onSelectStockFromPortfolio = (stock) => {
@@ -102,18 +98,35 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-black bg-opacity-30 text-neutral-100">
+
       <Navbar onLogout={handleLogout} />
 
-      <main className="max-w-6xl mx-auto p-4 space-y-4">
+      <main className="max-w-6xl mx-auto p-4 space-y-6">
+        {/* Profile Section */}
         {loadingProfile ? (
-          <div className="p-4 rounded bg-white text-center">Loading profile...</div>
+          <div className="p-4 rounded-2xl bg-slate-800/60 backdrop-blur border border-white/10 text-center">
+            Loading profile...
+          </div>
         ) : profileError ? (
-          <div className="p-4 rounded bg-red-50 text-red-700">
+          <div className="p-4 rounded-2xl bg-red-900/20 text-red-300 border border-red-500/20">
             <div className="font-medium">Profile error</div>
             <div className="text-sm mt-1">{profileError}</div>
             <div className="mt-3">
-              <button onClick={fetchProfile} className="px-3 py-1 bg-indigo-600 text-white rounded">Retry</button>
+              <button
+  onClick={fetchProfile}
+  className="relative inline-flex items-center justify-center p-0.5 rounded-lg group
+    bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-[length:200%_200%]
+    animate-gradient-x
+    hover:from-purple-700 hover:via-blue-600 hover:to-purple-700
+    text-white text-sm transition"
+>
+  <span className="relative px-4 py-2 bg-black/70 rounded-md">
+    Retry
+  </span>
+</button>
+
+
             </div>
           </div>
         ) : (
@@ -124,14 +137,22 @@ export default function DashboardPage() {
           />
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-1 space-y-4">
-            <AddStockForm onAdded={() => window.dispatchEvent(new CustomEvent("portfolio-updated"))} />
-            <PortfolioManager onSelectStock={(stock) => onSelectStockFromPortfolio(stock)} />
+        {/* Portfolio Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1 space-y-6">
+            <div className="rounded-xl bg-slate-800/60 backdrop-blur p-4 border border-white/10 shadow-md">
+              <AddStockForm onAdded={() => window.dispatchEvent(new CustomEvent("portfolio-updated"))} />
+            </div>
+
+            <div className="rounded-xl bg-slate-800/60 backdrop-blur p-4 border border-white/10 shadow-md">
+              <PortfolioManager onSelectStock={(stock) => onSelectStockFromPortfolio(stock)} />
+            </div>
           </div>
 
           <div className="lg:col-span-2" ref={newsListRef}>
-            <NewsList />
+            <div className="rounded-xl bg-slate-800/60 backdrop-blur p-4 border border-white/10 shadow-md">
+              <NewsList />
+            </div>
           </div>
         </div>
       </main>
