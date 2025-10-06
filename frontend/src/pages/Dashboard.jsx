@@ -6,6 +6,7 @@ import PortfolioManager from "../components/PortfolioManager";
 import NewsList from "../components/NewsList";
 import API from "../api/axios";
 import { showError, showLoading, dismissToast, showSuccess } from "../lib/toast";
+import { clearAuthToken } from "../api/axios";
 
 export default function DashboardPage() {
   const [user, setUser] = useState(null);
@@ -77,12 +78,11 @@ export default function DashboardPage() {
 
     const loadingId = showLoading("Logging out...");
     try {
-      await API.post("/user/logout");
+      clearAuthToken()
       dismissToast(loadingId);
       showSuccess("Logged out — redirecting to login");
     } catch (err) {
       dismissToast(loadingId);
-      console.warn("logout request failed", err);
       const msg = err?.response?.data?.message || err?.message || "Logout failed";
       showError(msg);
     } finally {
