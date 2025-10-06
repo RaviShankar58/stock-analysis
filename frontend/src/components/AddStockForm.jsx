@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import API from "../api/axios";
-import { showSuccess, showError, showLoading, dismissToast } from "../lib/toast";
+import { showSuccess, showError } from "../lib/toast";
 
 export default function AddStockForm({ onAdded }) {
   const [stockName, setStockName] = useState("");
@@ -49,28 +49,28 @@ export default function AddStockForm({ onAdded }) {
   };
 
   return (
-    <form onSubmit={submit} className="bg-white p-4 rounded-lg border">
+    <form onSubmit={submit} className="bg-slate-800 p-4 rounded-lg border border-gray-700">
       <div className="flex flex-wrap gap-3 items-center">
         <input
-          className="border px-3 py-2 rounded w-40"
+          className="bg-slate-900 border border-gray-700 text-gray-100 placeholder-gray-400 px-3 py-2 rounded w-40 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           placeholder="Stock name (e.g. RELIANCE)"
           value={stockName}
           onChange={(e) => setStockName(e.target.value)}
         />
         <input
-          className="border px-3 py-2 rounded w-24"
+          className="bg-slate-900 border border-gray-700 text-gray-100 placeholder-gray-400 px-3 py-2 rounded w-24 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           placeholder="Qty"
           value={quantity}
           onChange={(e) => setQuantity(e.target.value)}
         />
         <input
-          className="border px-3 py-2 rounded w-36"
+          className="bg-slate-900 border border-gray-700 text-gray-100 placeholder-gray-400 px-3 py-2 rounded w-36 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           placeholder="Avg price (opt)"
           value={avgPrice}
           onChange={(e) => setAvgPrice(e.target.value)}
         />
         <select
-          className="border px-3 py-2 rounded w-36"
+          className="bg-slate-900 border border-gray-700 text-gray-100 px-3 py-2 rounded w-36 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           value={country}
           onChange={(e) => setCountry(e.target.value)}
         >
@@ -81,9 +81,16 @@ export default function AddStockForm({ onAdded }) {
           <option value="HK">Hong Kong (HK)</option>
         </select>
 
-        <button type="submit" disabled={adding} className="px-4 py-2 rounded bg-indigo-600 text-white">
-          {adding ? "Adding..." : "Add"}
-        </button>
+        <button
+  type="submit"
+  disabled={adding}
+  className="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-neutral-200 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 disabled:opacity-50 transition"
+>
+  <span className="relative text-sm w-full px-5 py-2.5 transition-all ease-in duration-75 bg-black/70 rounded-md">
+    {adding ? "Adding..." : "Add"}
+  </span>
+</button>
+
       </div>
     </form>
   );

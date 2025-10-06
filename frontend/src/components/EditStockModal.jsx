@@ -38,7 +38,6 @@ export default function EditStockModal({ open, item, onSave, onClose }) {
         avgPrice: price,
         country: (country || "IN").toString().toUpperCase()
       };
-      // call onSave and wait if it returns a promise
       const res = onSave ? await onSave(payload) : null;
       showSuccess("Stock updated successfully ✅✅");
       onClose && onClose();
@@ -52,18 +51,37 @@ export default function EditStockModal({ open, item, onSave, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-lg w-full max-w-md p-5 shadow-lg">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold">Edit stock</h3>
-          <button onClick={onClose} className="text-gray-500">Close</button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-slate-800 text-white rounded-lg w-full max-w-md p-5 shadow-2xl border border-white/10">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Edit Stock</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-200">✕</button>
         </div>
 
-        <div className="mt-4 space-y-3">
-          <input placeholder="Stock name" value={stockName} onChange={(e) => setStockName(e.target.value)} className="w-full border px-3 py-2 rounded" />
-          <input placeholder="Quantity" value={quantity} onChange={(e) => setQuantity(e.target.value)} className="w-full border px-3 py-2 rounded" />
-          <input placeholder="Avg price (optional)" value={avgPrice} onChange={(e) => setAvgPrice(e.target.value)} className="w-full border px-3 py-2 rounded" />
-          <select value={country} onChange={(e) => setCountry(e.target.value)} className="w-full border px-3 py-2 rounded">
+        <div className="space-y-3">
+          <input
+            placeholder="Stock name"
+            value={stockName}
+            onChange={(e) => setStockName(e.target.value)}
+            className="w-full bg-slate-700 border border-gray-600 px-3 py-2 rounded text-sm placeholder-gray-400 text-white"
+          />
+          <input
+            placeholder="Quantity"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            className="w-full bg-slate-700 border border-gray-600 px-3 py-2 rounded text-sm placeholder-gray-400 text-white"
+          />
+          <input
+            placeholder="Avg price (optional)"
+            value={avgPrice}
+            onChange={(e) => setAvgPrice(e.target.value)}
+            className="w-full bg-slate-700 border border-gray-600 px-3 py-2 rounded text-sm placeholder-gray-400 text-white"
+          />
+          <select
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+            className="w-full bg-slate-700 border border-gray-600 px-3 py-2 rounded text-sm text-white"
+          >
             <option value="IN">India (IN)</option>
             <option value="US">United States (US)</option>
             <option value="GB">United Kingdom (GB)</option>
@@ -73,12 +91,25 @@ export default function EditStockModal({ open, item, onSave, onClose }) {
           </select>
         </div>
 
-        <div className="mt-4 flex justify-end gap-3">
-          <button onClick={onClose} className="px-3 py-1 rounded bg-gray-100 text-sm">Cancel</button>
-          <button onClick={handleSave} disabled={saving} className="px-3 py-1 rounded bg-indigo-600 text-white text-sm">
-            {saving ? "Saving..." : "Save"}
-          </button>
-        </div>
+        <div className="mt-5 flex justify-end gap-3">
+  <button
+    onClick={onClose}
+    className="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 text-sm text-gray-200 transition-colors duration-150"
+  >
+    Cancel
+  </button>
+
+  <button
+    onClick={handleSave}
+    disabled={saving}
+    className="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-white rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 disabled:opacity-50"
+  >
+    <span className="relative px-4 py-1.5 bg-slate-800 rounded-md w-full text-center transition-all duration-150 ease-in-out">
+      {saving ? "Saving..." : "Save"}
+    </span>
+  </button>
+</div>
+
       </div>
     </div>
   );
