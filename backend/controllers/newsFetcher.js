@@ -16,6 +16,38 @@ const PROVIDERS = [
 
 const TOP_N = parseInt(process.env.FETCH_TOP_N_PER_TICKER || "10", 10);
 
+// ---------------------------------------------------------------------------------------------
+// prune helper: keep only the newest `keepN` articles for a stockName
+async function pruneArticles(stockName, keepN = 5) {
+  try {
+    if (!stockName) return { deletedCount: 0 };
+
+    // 1) find ids to delete: skip the first keepN newest, then get the rest ids
+    const docsToDelete = await Article.find({ stockName })
+      .sort({ publishedAt: -1, _id: -1 })
+      .skip(keepN)
+      .select({ _id: 1 })
+      .lean();
+
+    if (!docsToDelete || docsToDelete.length === 0) {
+      return { deletedCount: 0 };
+    }
+
+    const ids = docsToDelete.map(d => d._id);
+    const res = await Article.deleteMany({ _id: { $in: ids } });
+    console.log(`Pruned ${res.deletedCount || 0} old articles for ${stockName} (kept ${keepN}).`);
+    return { deletedCount: res.deletedCount || 0 };
+  } catch (err) {
+    console.error("pruneArticles error for", stockName, err?.message || err);
+    return { deletedCount: 0, error: err?.message || String(err) };
+  }
+}
+
+// default keep per stock, configurable via env
+const KEEP_PER_STOCK = parseInt(process.env.KEEP_PER_STOCK || "5", 10);
+// ---------------------------------------------------------------------------------------------
+
+
 // helper: upsert single normalized article doc
 async function upsertArticle(stockName, normalized) {
   const doc = {
@@ -44,9 +76,43 @@ async function upsertArticle(stockName, normalized) {
   else if (doc.url) filter = { url: doc.url };
   else filter = { stockName: doc.stockName, title: doc.title, publishedAt: doc.publishedAt };
 
-  const up = await Article.updateOne(filter, { $setOnInsert: doc }, { upsert: true });
-  const inserted = (up.upsertedId || up.upsertedCount || up.nUpserted) ? true : false;
-  return { inserted, doc };
+// --------------------------------------------------------------------------------------------------
+  // const up = await Article.updateOne(filter, { $setOnInsert: doc }, { upsert: true });
+  // const inserted = (up.upsertedId || up.upsertedCount || up.nUpserted) ? true : false;
+  // return { inserted, doc };
+// --------------------------------------------------------------------------------------------------
+  const existing = await Article.findOne(filter).lean();
+
+  if (!existing) {
+    // No existing doc — insert
+    const res = await Article.updateOne(filter, { $setOnInsert: doc }, { upsert: true });
+    const inserted = (res.upsertedId || res.upsertedCount || res.nUpserted) ? true : false;
+    return { inserted, doc };
+  } else {
+    // existing doc found — only update if incoming publishedAt is newer
+    const incomingPublished = doc.publishedAt instanceof Date ? doc.publishedAt : new Date(doc.publishedAt);
+    const existingPublished = existing.publishedAt ? new Date(existing.publishedAt) : null;
+
+    const incomingIsNewer = !existingPublished || (incomingPublished && incomingPublished > existingPublished);
+
+    if (incomingIsNewer) {
+      const fieldsToUpdate = {
+        publishedAt: incomingPublished,
+        fetchedAt: new Date(),
+        // update metadata fields (but intentionally do NOT overwrite summary/key_facts)
+        ...(doc.raw_text ? { raw_text: doc.raw_text } : {}),
+        ...(Array.isArray(doc.entities) && doc.entities.length ? { entities: doc.entities } : {}),
+        source: doc.source,
+        provider: doc.provider,
+        providerId: doc.providerId || null
+      };
+      await Article.updateOne(filter, { $set: fieldsToUpdate });
+      return { inserted: false, updated: true, doc: fieldsToUpdate };
+    } else {
+      return { inserted: false, updated: false, doc: existing };
+    }
+  }
+// ----------------------------------------------------------------------------------------------
 }
 
 export async function runNewsFetch({ limitPerTicker = TOP_N } = {}) {
@@ -98,10 +164,38 @@ export async function runNewsFetch({ limitPerTicker = TOP_N } = {}) {
         continue;
       }
       try {
+// ----------------------------------------------------------------------------------------------------
         // module.search returns normalized list
-        const list = await p.module.search(stockName, country, limitPerTicker);
-        stats.totalFetched += list.length;
+        // const list = await p.module.search(stockName, country, limitPerTicker);
+        // stats.totalFetched += list.length;
+// ----------------------------------------------------------------------------------------------------
+        // --- compute the optional since cutoff (only if FETCH_RECENT_DAYS > 0) ---
+        const lookbackDays = parseInt(process.env.FETCH_RECENT_DAYS || "90", 10);
+        const sinceDate = lookbackDays > 0 ? new Date(Date.now() - lookbackDays * 24 * 60 * 60 * 1000) : null;
+        const publishedAfterParam = sinceDate ? sinceDate.toISOString() : null;
 
+        // module.search now accepts (stockName, country, limit, publishedAfter)
+        let list = await p.module.search(stockName, country, limitPerTicker, publishedAfterParam);
+        // defensive: ensure list is an array
+        if (!Array.isArray(list)) list = [];
+
+        const originalCount = list.length;
+        if (sinceDate) {
+          list = list.filter(it => {
+            try {
+              const date = it && it.publishedAt ? new Date(it.publishedAt) : null;
+              return date instanceof Date && !isNaN(date) && date >= sinceDate;
+            } catch (e) {
+              return false;
+            }
+          });
+          if (originalCount !== list.length) {
+            console.log(`Provider ${p.name} returned ${originalCount} items, ${originalCount - list.length} dropped (older than ${sinceDate.toISOString()})`);
+          }
+        }
+
+        stats.totalFetched += list.length;
+// ----------------------------------------------------------------------------------------------------
         for (const item of list) {
           // global dedupe in group
           if (item.provider && item.providerId) {
@@ -131,6 +225,14 @@ export async function runNewsFetch({ limitPerTicker = TOP_N } = {}) {
 
       if (fetchedCountForGroup >= limitPerTicker) break;
     } // providers loop
+// ------------------------------------------------------------------------------------
+    try {
+      const pruneRes = await pruneArticles(stockName, KEEP_PER_STOCK);
+      stats.totalPruned = (stats.totalPruned || 0) + (pruneRes.deletedCount || 0);
+    } catch (e) {
+      console.error("Prune failed for", stockName, e);
+    }
+// ------------------------------------------------------------------------------------
   } // groups loop
 
   console.log("Orchestrated news fetcher finished. stats:", stats);
