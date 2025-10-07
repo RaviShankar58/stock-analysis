@@ -9,8 +9,28 @@ import { startNewsScheduler } from "./controllers/newsScheduler.js";
 
 const app = express();
 
-app.use(cors());
-// app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+
+// ---------- CORS (replace app.use(cors()); with this) -------------------------
+// app.use(cors());
+
+const allowedOrigins = [
+  process.env.FRONTEND_URL || "http://localhost:5173",
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+};
+
+app.use(cors(corsOptions));
+
+// ------------------------------------------------------------------------------
+
 
 app.use(express.json());
 
