@@ -9,7 +9,6 @@ import { Toaster } from "react-hot-toast";
 export default function App() {
   return (
     <>
-      <BrowserRouter>
         <Toaster position="top-center" reverseOrder={false} />
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
@@ -19,7 +18,6 @@ export default function App() {
 
           <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
-      </BrowserRouter>
     </>
   );
 }

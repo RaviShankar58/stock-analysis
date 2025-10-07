@@ -9,7 +9,7 @@ import { showError, showLoading, dismissToast, showSuccess } from "../lib/toast"
 import { clearAuthToken } from "../api/axios";
 import { useNavigate } from "react-router-dom";
 
-const navigate = useNavigate();
+
 
 export default function DashboardPage() {
   const [user, setUser] = useState(null);
@@ -19,6 +19,8 @@ export default function DashboardPage() {
   const [portfolio, setPortfolio] = useState([]);
   const [portfolioValue, setPortfolioValue] = useState(0);
   const [loadingPortfolio, setLoadingPortfolio] = useState(true);
+
+  const navigate = useNavigate();
 
   const fetchProfile = async () => {
     setLoadingProfile(true);
