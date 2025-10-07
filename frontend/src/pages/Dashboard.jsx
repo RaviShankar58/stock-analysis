@@ -7,6 +7,9 @@ import NewsList from "../components/NewsList";
 import API from "../api/axios";
 import { showError, showLoading, dismissToast, showSuccess } from "../lib/toast";
 import { clearAuthToken } from "../api/axios";
+import { useNavigate } from "react-router-dom";
+
+const navigate = useNavigate();
 
 export default function DashboardPage() {
   const [user, setUser] = useState(null);
@@ -81,14 +84,11 @@ export default function DashboardPage() {
       clearAuthToken()
       dismissToast(loadingId);
       showSuccess("Logged out — redirecting to login");
+      navigate("/login", { replace: true });
     } catch (err) {
       dismissToast(loadingId);
       const msg = err?.response?.data?.message || err?.message || "Logout failed";
       showError(msg);
-    } finally {
-      setTimeout(() => {
-        window.location.href = "/login";
-      }, 600);
     }
   };
 
