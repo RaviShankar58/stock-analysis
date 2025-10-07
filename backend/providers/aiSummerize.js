@@ -142,32 +142,32 @@ export async function summarizeArticle({ url = null, rawText = null, title = nul
     throw new Error("summarizeArticle requires either url or rawText");
   }
 
-  console.log("=== EXTRACTED TEXT (first 1200 chars) ===");
-  console.log(extractedText.slice(0, 1200));
-  console.log("=== END EXTRACTED TEXT PREVIEW ===");
+  // console.log("=== EXTRACTED TEXT (first 1200 chars) ===");
+  // console.log(extractedText.slice(0, 1200));
+  // console.log("=== END EXTRACTED TEXT PREVIEW ===");
 
   const words = extractedText.split(/\s+/).filter(Boolean);
   const limit = Math.max(10, MODEL_WORD_LIMIT); // safe lower bound
   const chosenWords = words.slice(0, limit);
   const chunkText = chosenWords.join(" ");
 
-  console.log(`=== USING FIRST ${chosenWords.length} WORDS AS SINGLE CHUNK (word limit=${limit}) ===`);
-  console.log(chunkText.slice(0, 1200));
-  console.log("=== END CHUNK PREVIEW ===");
+  // console.log(`=== USING FIRST ${chosenWords.length} WORDS AS SINGLE CHUNK (word limit=${limit}) ===`);
+  // console.log(chunkText.slice(0, 1200));
+  // console.log("=== END CHUNK PREVIEW ===");
 
   const res = await summarizeChunkWithFallback(chunkText, HF_MODEL_PRIORITY);
   const out = res.output || "";
 
 
-  console.log(`--- OUT 1 (model: ${res.model_used || "none"}) ---`);
-  console.log(out.slice(0, 2000));
-  console.log(`--- END OUT 1 ---`);
+  // console.log(`--- OUT 1 (model: ${res.model_used || "none"}) ---`);
+  // console.log(out.slice(0, 2000));
+  // console.log(`--- END OUT 1 ---`);
 
   const finalSummary = out;
 
-  console.log("=== FINAL SUMMARY PREVIEW ===");
-  console.log(finalSummary.slice(0, 2000));
-  console.log("=== END FINAL SUMMARY PREVIEW ===");
+  // console.log("=== FINAL SUMMARY PREVIEW ===");
+  // console.log(finalSummary.slice(0, 2000));
+  // console.log("=== END FINAL SUMMARY PREVIEW ===");
 
   return {
     finalSummary,

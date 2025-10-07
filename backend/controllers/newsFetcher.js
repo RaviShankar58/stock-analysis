@@ -35,7 +35,7 @@ async function pruneArticles(stockName, keepN = 5) {
 
     const ids = docsToDelete.map(d => d._id);
     const res = await Article.deleteMany({ _id: { $in: ids } });
-    console.log(`Pruned ${res.deletedCount || 0} old articles for ${stockName} (kept ${keepN}).`);
+    // console.log(`Pruned ${res.deletedCount || 0} old articles for ${stockName} (kept ${keepN}).`);
     return { deletedCount: res.deletedCount || 0 };
   } catch (err) {
     console.error("pruneArticles error for", stockName, err?.message || err);
@@ -116,7 +116,7 @@ async function upsertArticle(stockName, normalized) {
 }
 
 export async function runNewsFetch({ limitPerTicker = TOP_N } = {}) {
-  console.log("Starting orchestrated news fetcher...");
+  // console.log("Starting orchestrated news fetcher...");
   const stats = { itemsChecked: 0, groupsChecked: 0, totalFetched: 0, totalSaved: 0, errors: [] };
 
   // 1) Read portfolio items (stockName + country)
@@ -131,7 +131,7 @@ export async function runNewsFetch({ limitPerTicker = TOP_N } = {}) {
   }
 
   if (!Array.isArray(portfolioItems) || portfolioItems.length === 0) {
-    console.log("No portfolio items found.");
+    // console.log("No portfolio items found.");
     return stats;
   }
   stats.itemsChecked = portfolioItems.length;
@@ -153,14 +153,14 @@ export async function runNewsFetch({ limitPerTicker = TOP_N } = {}) {
     const country = g.country;
     if (!stockName) continue;
 
-    console.log(`\nFetching for "${stockName}" (${country})`);
+    // console.log(`\nFetching for "${stockName}" (${country})`);
     const seenUrls = new Set();        // to dedupe across providers in this run
     const seenProviderIds = new Set(); // provider|id pairs
     let fetchedCountForGroup = 0;
 
     for (const p of PROVIDERS) {
       if (!p.enabled) {
-        console.log(`Provider ${p.name} disabled (no API key) — skipping`);
+        // console.log(`Provider ${p.name} disabled (no API key) — skipping`);
         continue;
       }
       try {
@@ -190,7 +190,7 @@ export async function runNewsFetch({ limitPerTicker = TOP_N } = {}) {
             }
           });
           if (originalCount !== list.length) {
-            console.log(`Provider ${p.name} returned ${originalCount} items, ${originalCount - list.length} dropped (older than ${sinceDate.toISOString()})`);
+            // console.log(`Provider ${p.name} returned ${originalCount} items, ${originalCount - list.length} dropped (older than ${sinceDate.toISOString()})`);
           }
         }
 
@@ -235,6 +235,6 @@ export async function runNewsFetch({ limitPerTicker = TOP_N } = {}) {
 // ------------------------------------------------------------------------------------
   } // groups loop
 
-  console.log("Orchestrated news fetcher finished. stats:", stats);
+  // console.log("Orchestrated news fetcher finished. stats:", stats);
   return stats;
 }
