@@ -5,6 +5,7 @@ import NewsCard from "./NewsCard";
 import ArticleModal from "./ArticleModal";
 import LoadingSpinner from "./LoadingSpinner";
 import SummaryViewer from "./SummaryViewer";
+import { showError, showSuccess } from "../lib/toast";
 
 
 export default function NewsList() {
@@ -13,6 +14,7 @@ export default function NewsList() {
   const [expanded, setExpanded] = useState({});
   const [selected, setSelected] = useState(null);
   const [viewer, setViewer] = useState({ visible: false, type: null, data: null, title: "", articleId: null });
+  const [refreshing, setRefreshing] = useState(false);
 
   const mountedRef = useRef(true);
 
@@ -50,6 +52,20 @@ export default function NewsList() {
       if (mountedRef.current) setLoading(false);
     }
   };
+
+  const handleManualRefresh = async () => {
+  if (refreshing) return;
+  setRefreshing(true);
+  try {
+    const res = await API.post("/user/news/fetch-now");
+    showSuccess(res?.data?.message || "Fetch started");
+  } catch (err) {
+    const msg = err?.response?.data?.error || err?.response?.data?.message || err?.message || "Fetch failed";
+    showError(msg);
+  } finally {
+    setRefreshing(false);
+  }
+};
 
   const toggle = async (stock) => {
     // prefer stockName, fallback to symbol; ensure string
@@ -122,6 +138,23 @@ export default function NewsList() {
 
   return (
     <div className="space-y-4">
+
+      <div className="flex items-center justify-end mb-2">
+        <button
+          onClick={handleManualRefresh}
+          disabled={refreshing}
+          className="text-sm px-3 py-1 bg-gray-100 rounded"
+        >
+          {refreshing ? (
+            <>
+              <LoadingSpinner className="inline-block mr-2" /> Refreshing...
+            </>
+          ) : (
+            "Refresh"
+          )}
+        </button>
+      </div>
+
       {portfolio.map((s) => {
         const stockName = s.stockName || s.symbol || "";
         const country = s.country || "IN";

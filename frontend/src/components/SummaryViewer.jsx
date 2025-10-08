@@ -34,6 +34,13 @@ export default function SummaryViewer({ visible, type, data = {}, title = "", on
         </div>
       ) : null}
 
+      {data.action && (
+        <div className="mt-3 text-sm">
+          <h4 className="font-medium mb-1">Suggested action</h4>
+          <div>{data.action}</div>
+        </div>
+      )}
+
       {data.rationale && (
         <div className="text-sm text-gray-800 whitespace-pre-wrap">
           <h4 className="font-medium mb-1">Rationale</h4>
@@ -41,12 +48,12 @@ export default function SummaryViewer({ visible, type, data = {}, title = "", on
         </div>
       )}
 
-      {data.action && (
-        <div className="mt-3 text-sm">
-          <h4 className="font-medium mb-1">Suggested action</h4>
-          <div>{data.action}</div>
-        </div>
-      )}
+      
+
+      <h3 className="text-lg font-semibold mb-2 text-red-600">
+        Disclaimer: This app offers AI-generated stock analysis, which may not always be accurate. Please use your own judgment and conduct additional research before making any investment decisions.
+      </h3>
+
     </div>
   );
 
