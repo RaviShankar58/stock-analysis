@@ -3,6 +3,12 @@ import mongoose from "mongoose";
 const { Schema } = mongoose;
 
 const articleSchema = new Schema({
+  portfolioId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: "Portfolio", 
+    required: true 
+  },
+
   stockName: { type: String, index: true },
 
   title: { type: String },

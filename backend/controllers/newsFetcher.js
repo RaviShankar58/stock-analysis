@@ -18,12 +18,12 @@ const TOP_N = parseInt(process.env.FETCH_TOP_N_PER_TICKER || "10", 10);
 
 // ---------------------------------------------------------------------------------------------
 // prune helper: keep only the newest `keepN` articles for a stockName
-async function pruneArticles(stockName, keepN = 5) {
+async function pruneArticles(stockName, keepN = 5, portfolioId) {
   try {
-    if (!stockName) return { deletedCount: 0 };
+    if (!stockName || !portfolioId) return { deletedCount: 0 };
 
     // 1) find ids to delete: skip the first keepN newest, then get the rest ids
-    const docsToDelete = await Article.find({ stockName })
+    const docsToDelete = await Article.find({ stockName , portfolioId})
       .sort({ publishedAt: -1, _id: -1 })
       .skip(keepN)
       .select({ _id: 1 })
@@ -49,9 +49,12 @@ const KEEP_PER_STOCK = parseInt(process.env.KEEP_PER_STOCK || "5", 10);
 
 
 // helper: upsert single normalized article doc
-async function upsertArticle(stockName, normalized) {
+async function upsertArticle(stockName, normalized,portfolioId) {
+  if (!portfolioId) throw new Error("portfolioId required for upsertArticle");
+
   const doc = {
     stockName,
+    portfolioId,
     title: normalized.title,
     url: normalized.url || null,
     source: normalized.source,
@@ -72,9 +75,9 @@ async function upsertArticle(stockName, normalized) {
   };
     // dedupe order: provider+providerId -> url -> stockName+title+publishedAt
   let filter = null;
-  if (doc.provider && doc.providerId) filter = { provider: doc.provider, providerId: doc.providerId };
-  else if (doc.url) filter = { url: doc.url };
-  else filter = { stockName: doc.stockName, title: doc.title, publishedAt: doc.publishedAt };
+  if (doc.provider && doc.providerId) filter = { provider: doc.provider, providerId: doc.providerId ,portfolioId };
+  else if (doc.url) filter = { url: doc.url , portfolioId };
+  else filter = { stockName: doc.stockName, title: doc.title, publishedAt: doc.publishedAt ,portfolioId };
 
 // --------------------------------------------------------------------------------------------------
   // const up = await Article.updateOne(filter, { $setOnInsert: doc }, { upsert: true });
@@ -142,7 +145,7 @@ export async function runNewsFetch({ limitPerTicker = TOP_N } = {}) {
     const name = (it.stockName || "").trim();
     const country = (it.country || "IN").toString().trim().toUpperCase() || "IN";
     const key = `${name}||${country}`;
-    if (!grouped[key]) grouped[key] = { stockName: name, country };
+    if (!grouped[key]) grouped[key] = { stockName: name, country, _id: it._id };
   }
   const groups = Object.values(grouped);
   stats.groupsChecked = groups.length;
@@ -209,7 +212,7 @@ export async function runNewsFetch({ limitPerTicker = TOP_N } = {}) {
           }
 
           // save
-          const { inserted } = await upsertArticle(stockName, item);
+          const { inserted } = await upsertArticle(stockName, item, g._id);
           if (inserted) {
             stats.totalSaved += 1;
           }
@@ -227,7 +230,7 @@ export async function runNewsFetch({ limitPerTicker = TOP_N } = {}) {
     } // providers loop
 // ------------------------------------------------------------------------------------
     try {
-      const pruneRes = await pruneArticles(stockName, KEEP_PER_STOCK);
+      const pruneRes = await pruneArticles(stockName, KEEP_PER_STOCK, g._id);
       stats.totalPruned = (stats.totalPruned || 0) + (pruneRes.deletedCount || 0);
     } catch (e) {
       console.error("Prune failed for", stockName, e);

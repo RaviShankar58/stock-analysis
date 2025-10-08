@@ -65,7 +65,10 @@ export const removeStock = async (req, res) => {
       return res.status(404).json({ message: `Stock ${stockName} not found in portfolio` });
     }
 
-    res.status(200).json({ message: `Stock ${stockName} removed from portfolio` });
+    // delete all related articles
+    await Article.deleteMany({ portfolioId: deletedStock._id });
+
+    res.status(200).json({ message: `Stock ${stockName} and related news articles removed from portfolio` });
   } catch (error) {
     res.status(500).json({ message: "Error deleting stock", error: error.message });
   }
