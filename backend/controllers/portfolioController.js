@@ -1,4 +1,5 @@
 import { Portfolio } from "../models/Portfolio.js";
+import { Article } from "../models/Article.js";
 
 // Get portfolio
 export const getPortfolio = async (req, res) => {
@@ -54,21 +55,32 @@ export const removeStock = async (req, res) => {
     if (!userId) return res.status(401).json({ message: "Unauthorized user to remove stock" });
 
     let { stock } = req.params;
+    const country = (req.query.country || "IN").toString().trim().toUpperCase();
+    
     if (!stock) return res.status(400).json({ message: "Stock stockName is required to delete" });
-    let stockName = String(stock).trim().toUpperCase();
+    // let stockName = String(stock).trim().toUpperCase();
+    const stockName = String(stock).trim().toUpperCase();
 
     const deletedStock = await Portfolio.findOneAndDelete({
-       userId,stockName
+      //  userId,stockName 
+       userId,stockName,country 
     });
 
     if (!deletedStock) {
-      return res.status(404).json({ message: `Stock ${stockName} not found in portfolio` });
+      return res.status(404).json({ message: `Stock ${stockName} (${country}) not found in portfolio` });
     }
 
     // delete all related articles
-    await Article.deleteMany({ portfolioId: deletedStock._id });
+    // await Article.deleteMany({ portfolioId: deletedStock._id });
+    await Article.deleteMany({
+      $or: [
+        { portfolioId: deletedStock._id },
+        { portfolioId: { $exists: false }, stockName: deletedStock.stockName, country: deletedStock.country }
+      ]
+    });
 
-    res.status(200).json({ message: `Stock ${stockName} and related news articles removed from portfolio` });
+
+    res.status(200).json({ message: `Stock ${stockName} (${country}) and related news articles removed from portfolio` });
   } catch (error) {
     res.status(500).json({ message: "Error deleting stock", error: error.message });
   }
