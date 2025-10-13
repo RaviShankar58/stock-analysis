@@ -54,18 +54,18 @@ export default function NewsList() {
   };
 
   const handleManualRefresh = async () => {
-  if (refreshing) return;
-  setRefreshing(true);
-  try {
-    const res = await API.post("/user/news/fetch-now");
-    showSuccess(res?.data?.message || "Fetch started");
-  } catch (err) {
-    const msg = err?.response?.data?.error || err?.response?.data?.message || err?.message || "Fetch failed";
-    showError(msg);
-  } finally {
-    setRefreshing(false);
-  }
-};
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      const res = await API.post("/user/news/fetch-now");
+      showSuccess(res?.data?.message || "Fetch started");
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.response?.data?.message || err?.message || "Fetch failed";
+      showError(msg);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const toggle = async (stock) => {
     // prefer stockName, fallback to symbol; ensure string
@@ -105,8 +105,29 @@ export default function NewsList() {
     }
   };
 
-  const handleCardOpen = (article) => {
-    setSelected(article);
+  const handleCardOpen = async (article) => {
+    // setSelected(article);
+    if (!article) return;
+
+    // if summary already present and non-empty, open immediately
+    if (article.summary && String(article.summary).trim().length > 0) {
+      setSelected(article);
+      return;
+    }
+    try {
+      const id = article._id ?? article.id ?? article.url;
+      if (!id) {
+        setSelected(article);
+        return;
+      }
+      const res = await API.get(`/user/news/${encodeURIComponent(article._id)}`);
+      const full = res?.data?.article ?? res?.data ?? null;
+      setSelected(full || article);
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.response?.data?.error || err?.message || "Failed to load article";
+      showError(msg);
+      setSelected(article); // fallback open with whatever we have
+    }
   };
 
   const updateArticleInState = (article) => {
@@ -133,25 +154,38 @@ export default function NewsList() {
   };
   const handleCloseViewer = () => setViewer({ visible: false, type: null, data: null, title: "", articleId: null });
 
-  if (loading) return <div className="p-4 text-center">Loading portfolio for news...</div>;
-  if (!portfolio.length) return <div className="p-4 text-gray-600">No stocks in portfolio — add one.</div>;
+  if (loading) return (
+    <div className="p-4 text-center text-neutral-200">
+      <LoadingSpinner className="inline-block mr-2" /> Loading portfolio for news...
+    </div>
+  );
+  if (!portfolio.length) return (
+    <div className="p-4 text-neutral-400">
+      No stocks in portfolio — add one.
+    </div>
+  );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
 
       <div className="flex items-center justify-end mb-2">
+        <h3 className="text-gray-200 text-lg font-semibold tracking-wide drop-shadow-sm mr-auto ml-2 mb-1">
+          Stay Ahead — Your Personalized Stock Headlines 📊
+        </h3>
         <button
           onClick={handleManualRefresh}
           disabled={refreshing}
-          className="text-sm px-3 py-1 bg-gray-100 rounded"
+          className="relative inline-flex items-center justify-center p-0.5 mb-0 mt-0 mx-2 overflow-hidden text-sm font-medium text-neutral-200 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {refreshing ? (
-            <>
-              <LoadingSpinner className="inline-block mr-2" /> Refreshing...
-            </>
-          ) : (
-            "Refresh"
-          )}
+          <span className="relative text-lg w-full px-5 py-2.5 transition-all ease-in duration-75 bg-black/70 rounded-md">
+            {refreshing ? (
+              <>
+                <LoadingSpinner className="inline-block mr-2" /> Refreshing...
+              </>
+            ) : (
+              "Refresh"
+            )}
+          </span>
         </button>
       </div>
 
@@ -161,40 +195,76 @@ export default function NewsList() {
         const key = `${stockName}||${country}`;
         const entry = expanded[key] || {};
         return (
-          <div key={key} className="border rounded-lg p-3">
+          <div
+            key={key}
+            className="rounded-xl bg-slate-800 backdrop-blur p-4 border border-white shadow-md"
+          >
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-lg font-semibold">{stockName} <span className="text-sm text-gray-400">• {country}</span></div>
-                <div className="text-xs text-gray-500">Qty: {s.quantity ?? "-"}</div>
+                <div className="text-lg font-semibold text-indigo-200">
+                  {stockName}{" "}
+                  <span className="text-sm text-gray-400">• {country}</span>
+                </div>
+                <div className="text-xs text-gray-300">
+                  Qty: {s.quantity ?? "-"}
+                </div>
               </div>
               <div>
-                <button onClick={() => toggle(s)} className="px-3 py-1 rounded bg-indigo-50 text-indigo-700">
-                  {entry.expanded ? "Collapse ▲" : "Show news ▼"}
+                <button
+                  onClick={() => toggle(s)}
+                  className="relative inline-flex items-center justify-center p-0.5 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-neutral-200 text-sm transition"
+                >
+                  <span className="relative px-4 py-1.5 bg-black/70 rounded-md">
+                    {entry.expanded ? "Collapse ▲" : "Show news ▼"}
+                  </span>
                 </button>
               </div>
+
             </div>
 
             {entry.expanded && (
-              <div className="mt-3">
-                {entry.loading && <div className="text-sm text-gray-500"><LoadingSpinner className="inline-block mr-2" /> Loading news...</div>}
-                {entry.error && <div className="text-sm text-red-500">{entry.error}</div>}
-                {!entry.loading && !entry.error && (!entry.news || entry.news.length === 0) && <div className="text-sm text-gray-500">No recent top news.</div>}
-                {!entry.loading && entry.news && entry.news.length > 0 && (
-                  <div className="grid grid-cols-1 gap-3">
-                    {entry.news.map((a) => (
-                      <NewsCard key={a._id || a.url} article={a} onOpen={handleCardOpen} onUpdated={updateArticleInState} onShowResult={handleShowResult}/>
-                    ))}
+              <div className="mt-3 space-y-3">
+                {entry.loading && (
+                  <div className="text-sm text-neutral-300">
+                    <LoadingSpinner className="inline-block mr-2" /> Loading news...
                   </div>
                 )}
+                {entry.error && (
+                  <div className="text-sm text-red-400">{entry.error}</div>
+                )}
+                {!entry.loading &&
+                  !entry.error &&
+                  (!entry.news || entry.news.length === 0) && (
+                    <div className="text-sm text-neutral-400">
+                      No recent top news.
+                    </div>
+                  )}
+                {!entry.loading &&
+                  entry.news &&
+                  entry.news.length > 0 && (
+                    <div className="grid grid-cols-1 gap-4">
+                      {entry.news.map((a) => (
+                        <NewsCard
+                          key={a._id || a.url}
+                          article={a}
+                          onOpen={handleCardOpen}
+                          onUpdated={updateArticleInState}
+                          onShowResult={handleShowResult}
+                        />
+                      ))}
+                    </div>
+                  )}
               </div>
             )}
           </div>
         );
       })}
 
-      {selected && <ArticleModal article={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <ArticleModal article={selected} onClose={() => setSelected(null)} />
+      )}
 
-        {viewer.visible && (
+      {viewer.visible && (
         <SummaryViewer
           visible={viewer.visible}
           type={viewer.type}
@@ -203,7 +273,6 @@ export default function NewsList() {
           onClose={handleCloseViewer}
         />
       )}
-      
     </div>
   );
 }

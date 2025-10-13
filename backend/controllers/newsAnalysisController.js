@@ -11,6 +11,18 @@ export async function summerizeArticle(req, res) {
     const article = await Article.findById(articleId);
     if (!article) return res.status(404).json({ error: "Article not found" });
 
+    // skip summarization if already present
+    if (article.summary && article.summary.trim().length > 0) {
+      return res.json({
+        success: true,
+        articleId: article._id,
+        summary: article.summary,
+        key_facts: article.key_facts || [],
+        models_used: [],
+        note: "Summary already exists — reused cached version",
+      });
+    }
+
     const hasUrl = article.url && String(article.url).trim().length > 5;
     const hasRawText = article.raw_text && String(article.raw_text).trim().length > 50;
     const inputSource = hasUrl ? "url" : (hasRawText ? "raw_text" : null);
@@ -30,7 +42,7 @@ export async function summerizeArticle(req, res) {
     }
 
     article.summary = result.finalSummary;
-    
+
     article.rationale = result.chunkOutputs ? result.chunkOutputs.join("\n\n") : "";
     article.key_facts = article.key_facts && Array.isArray(article.key_facts) ? article.key_facts : [];
 

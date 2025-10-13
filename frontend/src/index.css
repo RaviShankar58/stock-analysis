@@ -14,3 +14,30 @@ body {
 ::placeholder {
   color: #9aa6b2;
 }
+
+@keyframes gradientWave {
+  0% {
+    background-position: 0% 50%;
+  }
+  25% {
+    background-position: 50% 100%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  75% {
+    background-position: 50% 0%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animated-bg {
+  background: linear-gradient(-45deg, #000000, #011154, #3d0181, #000a3f);
+  background-size: 400% 400%;
+  animation: gradientWave 10s ease-in-out infinite;
+  min-height: 100vh;
+  width: 100%;
+}
+

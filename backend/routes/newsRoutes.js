@@ -35,6 +35,22 @@ router.get("/", async (req, res) => {
   }
 });
 
+// GET /user/news/:articleId  -> full article
+router.get("/:articleId", async (req, res) => {
+  try {
+    const id = req.params.articleId;
+    if (!id) return res.status(400).json({ error: "articleId required" });
+
+    const doc = await Article.findById(id).lean();
+    if (!doc) return res.status(404).json({ error: "Article not found" });
+
+    return res.json({ ok: true, article: doc });
+  } catch (err) {
+    console.error("GET /user/news/:articleId error:", err);
+    return res.status(500).json({ error: err.message || "Server error" });
+  }
+});
+
 // POST /api/news/fetch-now  -> manual trigger (calls controller)
 router.post("/fetch-now", fetchNow);
 
