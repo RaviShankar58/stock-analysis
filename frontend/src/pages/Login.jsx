@@ -57,10 +57,10 @@ export default function Login() {
       }}
     >
       <div className="flex-1 flex flex-col md:flex-row items-center justify-center w-full h-full gap-2 px-4 py-8">
-        <div className="w-1/2 md:w-1/2 flex items-center justify-center">
+        <div className="w-full md:w-1/2 flex items-center justify-center">
           <form
             onSubmit={handleSubmit}
-            className="flex flex-col p-6 rounded-2xl shadow-md shadow-white/5 w-4/5 max-w-lg bg-black/60 backdrop-blur-sm"
+            className="flex flex-col p-6 rounded-2xl shadow-md shadow-white/5 w-full max-w-md md:max-w-lg bg-black/60 backdrop-blur-sm"
             style={{
               backgroundImage:
                 "linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))",
@@ -82,7 +82,7 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               type="email"
-              className="w-auto mb-4 mt-2 mx-2 rounded-lg px-4 py-2 text-gray-200 placeholder-gray-400 border border-gray-700 bg-transparent focus:outline-none focus:ring-0 focus:border-blue-500"
+              className="w-full mb-4 mt-2 rounded-lg px-4 py-2 text-gray-200 placeholder-gray-400 border border-gray-700 bg-transparent focus:outline-none focus:ring-0 focus:border-blue-500"
               placeholder="Email"
               autoComplete="email"
             />
@@ -92,7 +92,7 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               type="password"
-              className="w-auto mb-4 mt-2 mx-2 rounded-lg px-4 py-2 text-gray-200 placeholder-gray-400 border border-gray-700 bg-transparent focus:outline-none focus:ring-0 focus:border-blue-500"
+              className="w-full mb-4 mt-2 rounded-lg px-4 py-2 text-gray-200 placeholder-gray-400 border border-gray-700 bg-transparent focus:outline-none focus:ring-0 focus:border-blue-500"
               placeholder="Password"
               autoComplete="current-password"
             />
@@ -114,7 +114,7 @@ export default function Login() {
           </form>
         </div>
 
-        <div className="w-1/2 md:w-1/2 overflow-y-auto max-h-screen">
+        <div className="w-full md:w-1/2 overflow-y-auto max-h-screen">
           <TopNews defaultCountry="in" />
         </div>
       </div>
