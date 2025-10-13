@@ -1,7 +1,7 @@
 // src/components/TopNews.jsx
 import React, { useEffect, useState, useRef } from "react";
-import { fetchTopNews, clearNewsCacheFor } from "../lib/gnewsApi";
 import LoadingSpinner from "./LoadingSpinner";
+import API from "../api/axios";
 
 const COUNTRY_OPTIONS = [
   { code: "in", label: "India" },
@@ -12,7 +12,7 @@ const COUNTRY_OPTIONS = [
   { code: "ca", label: "Canada" },
   { code: "de", label: "Germany" },
   { code: "fr", label: "France" },
-  { code: "",   label: "Global" },
+  { code: "", label: "Global" },
 ];
 
 export default function TopNews({
@@ -32,10 +32,12 @@ export default function TopNews({
     setError("");
     setLoading(true);
     try {
-      const data = await fetchTopNews(country || "global", maxResults, force);
+      const params = { country: country || "", max: String(maxResults || 10) };
+      const res = await API.get("/api/dailyNews", { params });
+      const json = res.data;
       if (!mounted.current) return;
-      setArticles(data || []);
-      setLastUpdated(Date.now());
+      setArticles(json.articles || []);
+      setLastUpdated(json.fetchedAt ? new Date(json.fetchedAt).getTime() : Date.now());
     } catch (err) {
       if (!mounted.current) return;
       setError(err?.message || "Failed to fetch news");
@@ -73,8 +75,6 @@ export default function TopNews({
             onChange={(e) => {
               const newCountry = e.target.value;
               setCountry(newCountry);
-              clearNewsCacheFor(newCountry || null, maxResults);
-              // immediate fetch for new country
               load({ force: true });
             }}
             className="bg-black/60 text-sm text-neutral-100 px-3 py-2 rounded border border-white/10"
@@ -87,7 +87,7 @@ export default function TopNews({
           </select>
 
           <button
-            onClick={() => { clearNewsCacheFor(country || null, maxResults); load({ force: true }); }}
+            onClick={() => { load({ force: true }); }}
             className="text-xs px-3 py-2 rounded bg-indigo-600 hover:bg-indigo-500 transition"
           >
             Refresh
@@ -135,7 +135,7 @@ export default function TopNews({
         <div>{lastUpdated ? `Last updated: ${new Date(lastUpdated).toLocaleString()}` : "Not updated yet"}</div>
         <div>
           <button
-            onClick={() => { clearNewsCacheFor(country || null, maxResults); load({ force: true }); }}
+            onClick={() => { load({ force: true }); }}
             className="text-xs underline"
           >
             Force fetch

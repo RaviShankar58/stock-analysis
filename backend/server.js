@@ -40,12 +40,14 @@ app.use(express.json());
 import userAuthRoutes from "./routes/userAuth.js";
 import portfolioRoutes from "./routes/portfolio.js";
 import newsRouter from "./routes/newsRoutes.js";
+import dailyNews from "./routes/dailyNews.js";
 
 
 // using routes
 app.use("/user", userAuthRoutes);
 app.use("/user/portfolio", portfolioRoutes);
 app.use("/user/news", newsRouter);
+app.use("/api/dailyNews", dailyNews);
 
 
 const PORT = process.env.PORT || 8000;
