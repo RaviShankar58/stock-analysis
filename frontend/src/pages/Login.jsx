@@ -56,8 +56,8 @@ export default function Login() {
         backgroundColor: "#071026",
       }}
     >
-      <div className="flex-1 flex flex-row items-center justify-center w-full h-full gap-2 px-4 py-8">
-        <div className="w-1/2 flex items-center justify-center">
+      <div className="flex-1 flex flex-col md:flex-row items-center justify-center w-full h-full gap-2 px-4 py-8">
+        <div className="w-1/2 md:w-1/2 flex items-center justify-center">
           <form
             onSubmit={handleSubmit}
             className="flex flex-col p-6 rounded-2xl shadow-md shadow-white/5 w-4/5 max-w-lg bg-black/60 backdrop-blur-sm"
@@ -114,7 +114,7 @@ export default function Login() {
           </form>
         </div>
 
-        <div className="w-1/2 overflow-y-auto max-h-screen">
+        <div className="w-1/2 md:w-1/2 overflow-y-auto max-h-screen">
           <TopNews defaultCountry="in" />
         </div>
       </div>
