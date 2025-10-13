@@ -6,7 +6,7 @@ Full-stack MERN application to track your stock portfolio, get the latest news, 
 ---
 
 ## 🌐 Live Demo
-[Insert your live deployment link here](#)
+https://stock-analysis-frontend-3p33.onrender.com
 
 ---
 
