@@ -19,10 +19,12 @@ Full-stack MERN application to track your stock portfolio, get the latest news, 
 - **News & Analysis**
   - 📰 Fetch latest news for your portfolio stocks.
   - 📝 Summarize news articles for quick reading.
+  - 📰 Latest Market News on Login/Signup page – get top business & stock-related headlines on login/signup page itself.
   - 🤖 AI-driven analysis:
     - 📊 Impact assessment (Positive / Negative / Neutral)
     - 🔹 Action recommendation (Buy / Sell / Hold)
     - 🧐 Explanation for suggested decision
+  
 
 - **User Authentication**
   - 🔐 Sign up and login.
